@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -16,6 +17,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using Sample01.Filters;
+using Sample01.Handlers;
 
 namespace Sample01
 {
@@ -34,6 +37,31 @@ namespace Sample01
         {
             services.AddSwaggerGen(c =>
             {
+                c.AddSecurityDefinition("basic", new OpenApiSecurityScheme
+                {
+                    Description = "Basic auth added to authorization header",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    // This scheme name MUST be lowercase.
+                    Scheme = "basic",
+                    Type = SecuritySchemeType.Http
+                });
+
+                c.OperationFilter<AuthOperationFilter>();
+                // Global auth settings
+                // c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                // {
+                //     {
+                //         new OpenApiSecurityScheme{
+                //             Reference = new OpenApiReference{
+                //                 Type = ReferenceType.SecurityScheme,
+                //                 Id = "basic"
+                //             },
+                //         },
+                //         new List<string>()
+                //     }
+                //});
+
                 c.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Title = "Sample API",
@@ -44,6 +72,9 @@ namespace Sample01
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
             });
+
+            services.AddAuthentication("basic")
+                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("basic", null);
 
             services.AddControllers();
         }
