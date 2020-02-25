@@ -1,3 +1,6 @@
+// reference
+// https://docs.microsoft.com/ja-jp/aspnet/core/tutorials/getting-started-with-swashbuckle?view=aspnetcore-3.1&tabs=visual-studio-code
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 
 namespace Sample01
 {
@@ -25,6 +29,15 @@ namespace Sample01
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo
+                {
+                    Title = "Sample API",
+                    Version = "v1"
+                });
+            });
+
             services.AddControllers();
         }
 
@@ -35,6 +48,13 @@ namespace Sample01
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+            {
+                c.SwaggerEndpoint("/swagger/v1/swagger.json", "Sample API v1");
+            });
 
             app.UseHttpsRedirection();
 
